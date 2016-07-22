@@ -1,0 +1,80 @@
+---
+title: "MMC Stock Analysis"
+author: "Salomon Gilles"
+date: "July 21, 2016"
+output: 
+  html_document:
+    keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<br>
+<br>
+
+## MMC Stock:
+
+This document is an attempt to analyze the MMC stock on the S&P. The stock is housed in 'http://quote.yahoo.com'. We start by downloading the stock, plotting the original data, then log transform the data for analysis, and finally do a volatility test, and finally apply three decay measurements.
+
+<!--- change directory to point to where MmcCode.R is located--->
+```{r echo=FALSE, message=FALSE, warning=FALSE, quiet=TRUE}
+ knitr::read_chunk("C:/SMU-HomeWork/DataScience/Unit09/MmcCode.R")
+```
+
+<!---initialize the function for invocation --->
+```{r mmcFunctions, echo=FALSE, message=FALSE, warning=FALSE, quiet=TRUE}
+```
+
+<!--Downloading MMC stock -->
+``` {r downloadmmc, echo=FALSE, message=FALSE, warning=FALSE}
+  stockUrl <- "http://quote.yahoo.com"
+  mmcdata <- MMCData(stockUrl, "MMC",  "1990-01-01", "2016-12-31")
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+  mmcLogdata <- LogStockData(mmcdata)
+```
+<br>
+
+####MMC Original Market Data: #####
+<br>There is an initial unsteady downward/upward trend which peaks to over 140 by 1997-1998, and then suddendly takes a massive fall to about 42. We see a repeat of the similar pattern between 1998 through 2003, then holds on for a few years before deeping to slightly over 20, where it continues to sleep to about 20 by 2010 and finally takes a slow but steady upward trend to about 75 byt 2016. Because this data is for several years, seasonality cannot be accessed.
+<!--- Plot of Original MMC data --->
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+PlotOriginaldata(mmcdata)
+```
+
+
+####MMC Log Transformation data: #####
+<br>The log transformation of the MMC stock data exhibit a random and noisy pattern with some wild outliers. This just offers no good pattern for predictability.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+PlotLogdata(mmcLogdata)
+```
+
+####MMC Volatility data: #####
+<br>The volatility application method provides a clearer picture of the trending of the MMC which could be used for forecasting this stock. There is a sharp upward then steady down trend from the beginning of the series, followed by  an even sharper spike and fall again. This continues and the down trends get larger until the fall reaches the starting price at the end of the series. The size of the weight plays a great role in stabilizing what sudden rise in price. The larger the size of the weight the more stable the price.
+``` {r MmcUnit09, echo=FALSE} 
+  # coumpute stock volatility
+  stockDecay <- c(300, 600, 1000)
+  
+  # ready and plot first decay
+  volatilStock <- StockVolatility(stockDecay[1], mmcLogdata)
+  plot(volatilStock, y=NULL, type="l", col = "black", xlab = "time series", ylab = "price", main = "MMC - Volatility application")    
+  
+  volcol <- c("black", "red", "blue")
+  for (i in 2:3 ) {
+    volatilStoc <- StockVolatility(stockDecay[i], mmcLogdata)
+    lines(volatilStoc, type="l", col = volcol[i])    # overlay decay 1 
+  }
+  
+  lowest <- paste0(stockDecay[1], " decay")
+  medium <- paste0(stockDecay[2], " decay")
+  highest <- paste0(stockDecay[3], " decay")  
+  legend("topright", lty=1, col=1:3, c(lowest, medium, highest))
+```
+
+
+## Conclusion
+We just atempted to analyze the MMC stock over a ling time period. We started looking at the initial data feed, then did a log transform and finally, used the volatility method with three weight. Every approach has its merits and strengths. But the log transform model only pointed some outliers which could be very helpful in some situations. For the case at hand, i found the volatility model most helpful because it provided a clear picture from which forecasting is possible.
